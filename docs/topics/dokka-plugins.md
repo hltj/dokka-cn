@@ -1,4 +1,4 @@
-[//]: # (title: Dokka plugins)
+[//]: # (title: Dokka 插件)
 
 Dokka was built from the ground up to be easily extensible and highly customizable, which allows the community
 to implement plugins for missing or very specific features that are not provided out of the box.
