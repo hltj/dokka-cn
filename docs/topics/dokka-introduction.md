@@ -1,28 +1,28 @@
 [//]: # (title: 简介)
 
-Dokka is an API documentation engine for Kotlin.
+Dokka 是 Kotlin 的 API 文档引擎。
 
-Just like Kotlin itself, Dokka supports mixed-language projects. It understands Kotlin's
-[KDoc comments](https://kotlinlang.org/docs/kotlin-doc.html#kdoc-syntax) and Java's 
-[Javadoc comments](https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html).
+就像 Kotlin 本身一样，Dokka 支持混合语言项目。 它理解 Kotlin 的
+[KDoc 注释](https://kotlinlang.org/docs/kotlin-doc.html#kdoc-syntax)与 Java 的 
+[Javadoc 注释](https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html)。
 
-Dokka can generate documentation in multiple formats, including its own modern [HTML format](dokka-html.md),
-multiple flavors of [Markdown](dokka-markdown.md), and Java's [Javadoc HTML](dokka-javadoc.md).
+Dokka 可以生成多种格式的文档，包括它自己的现代 [HTML 格式](dokka-html.md)、
+多种风格的 [Markdown](dokka-markdown.md) 以及 Java 的 [Javadoc HTML](dokka-javadoc.md)。
 
-Here are some libraries that use Dokka for their API reference documentation:
+以下是一些将 Dokka 用于其 API 参考文档的库：
 
 * [kotlinx.coroutines](https://kotlinlang.org/api/kotlinx.coroutines/)
 * [Bitmovin](https://cdn.bitmovin.com/player/android/3/docs/index.html)
 * [Hexagon](https://hexagonkt.com/api/index.html)
 * [Ktor](https://api.ktor.io/)
-* [OkHttp](https://square.github.io/okhttp/4.x/okhttp/okhttp3/) (Markdown)
+* [OkHttp](https://square.github.io/okhttp/4.x/okhttp/okhttp3/)（Markdown）
 
-You can run Dokka using [Gradle](dokka-gradle.md), [Maven](dokka-maven.md) or from the [command line](dokka-cli.md). It is also
-[highly pluggable](dokka-plugins.md).
+可以使用 [Gradle](dokka-gradle.md)、 [Maven](dokka-maven.md) 或者在[命令行](dokka-cli.md)运行 Dokka。 它也是<!--
+-->[高度可插拔的](dokka-plugins.md)。
 
-See [Get started with Dokka](dokka-get-started.md) to take your first steps in using Dokka.
+参见 [Dokka 入门](dokka-get-started.md) 来迈出使用 Dokka 的第一步。
 
-## Community
+## 社区
 
-Dokka has a dedicated `#dokka` channel in [Kotlin Community Slack](https://surveys.jetbrains.com/s3/kotlin-slack-sign-up)
-where you can chat about Dokka, its plugins and how to develop them, as well as get in touch with maintainers.
+Dokka 在 [Kotlin 社区 Slack](https://surveys.jetbrains.com/s3/kotlin-slack-sign-up) 中有个专属的 `#dokka` 频道，
+可以在其中讨论 Dokka 及其插件以及如何开发插件，也可以与维护人取得联系。
