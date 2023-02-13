@@ -275,4 +275,4 @@ Here are some notable Dokka plugins that you might find useful:
 | [Kotlin as Java plugin](https://github.com/Kotlin/dokka/tree/master/plugins/kotlin-as-java)               | Renders Kotlin signatures as seen from Java's perspective                                                    |
 
 If you are a Dokka plugin author and would like to add your plugin to this list, get in touch with maintainers
-via [Slack](dokka-introduction.md#community) or [GitHub](https://github.com/Kotlin/dokka/).
+via [Slack](dokka-introduction.md#社区) or [GitHub](https://github.com/Kotlin/dokka/).
