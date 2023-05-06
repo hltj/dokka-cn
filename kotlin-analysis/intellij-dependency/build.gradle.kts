@@ -2,14 +2,19 @@ import org.jetbrains.DokkaPublicationBuilder.Component.Shadow
 import org.jetbrains.registerDokkaArtifactPublication
 
 plugins {
+    id("org.jetbrains.conventions.kotlin-jvm")
+    id("org.jetbrains.conventions.maven-publish")
     id("com.github.johnrengelman.shadow")
-    `maven-publish`
 }
 
 repositories {
+    // Override the shared repositories defined in the root settings.gradle.kts
+    // These repositories are very specific and are not needed in other projects
     mavenCentral()
-    maven(url = "https://www.jetbrains.com/intellij-repository/snapshots")
-    maven(url = "https://www.jetbrains.com/intellij-repository/releases")
+    maven("https://www.jetbrains.com/intellij-repository/snapshots") {
+        mavenContent { snapshotsOnly() }
+    }
+    maven("https://www.jetbrains.com/intellij-repository/releases")
     maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-ide")
     maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-ide-plugin-dependencies")
     maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
@@ -30,19 +35,19 @@ fun jpsModel() = zipTree(jpsStandalone.singleFile).matching {
 }
 
 dependencies {
-    val kotlin_plugin_version: String by project
-    api("org.jetbrains.kotlin:common:$kotlin_plugin_version")
-    api("org.jetbrains.kotlin:idea:$kotlin_plugin_version") {
+    api(libs.kotlin.idePlugin.common)
+    api(libs.kotlin.idePlugin.idea) {
         isTransitive = false
     }
-    api("org.jetbrains.kotlin:core:$kotlin_plugin_version")
-    api("org.jetbrains.kotlin:native:$kotlin_plugin_version")
+    api(libs.kotlin.idePlugin.core)
+    api(libs.kotlin.idePlugin.native)
 
-    val idea_version: String by project
-    intellijCore("com.jetbrains.intellij.idea:intellij-core:$idea_version")
+    @Suppress("UnstableApiUsage")
+    intellijCore(libs.jetbrains.intellij.core)
     implementation(intellijCoreAnalysis())
 
-    jpsStandalone("com.jetbrains.intellij.idea:jps-standalone:$idea_version")
+    @Suppress("UnstableApiUsage")
+    jpsStandalone(libs.jetbrains.intellij.jpsStandalone)
     implementation(jpsModel())
 }
 

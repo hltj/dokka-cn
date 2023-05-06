@@ -2,13 +2,13 @@ import org.jetbrains.DokkaPublicationBuilder.Component.Shadow
 import org.jetbrains.registerDokkaArtifactPublication
 
 plugins {
+    id("org.jetbrains.conventions.kotlin-jvm")
+    id("org.jetbrains.conventions.maven-publish")
     id("com.github.johnrengelman.shadow")
-    `maven-publish`
 }
 
 dependencies {
-    val kotlin_version: String by project
-    api("org.jetbrains.kotlin:kotlin-compiler:$kotlin_version")
+    api(libs.kotlin.compiler)
 }
 
 tasks {

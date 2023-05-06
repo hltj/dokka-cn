@@ -7,6 +7,7 @@ import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByName
 import org.gradle.testfixtures.ProjectBuilder
 import org.jetbrains.dokka.DokkaConfigurationImpl
+import org.jetbrains.dokka.gradle.utils.subprojects_
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -19,8 +20,8 @@ class AbstractDokkaParentTaskTest {
     private val subSubproject0 = ProjectBuilder.builder().withName("subSubproject0").withParent(subproject0).build()
 
     init {
-        rootProject.subprojects { project ->
-            project.tasks.create<DokkaTask>("dokkaTask")
+        rootProject.subprojects_ {
+            tasks.create<DokkaTask>("dokkaTask")
         }
     }
 
@@ -190,12 +191,10 @@ class AbstractDokkaParentTaskTest {
     }
 }
 
-internal open class TestDokkaParentTask : AbstractDokkaParentTask() {
+internal abstract class TestDokkaParentTask : AbstractDokkaParentTask() {
     override fun buildDokkaConfiguration(): DokkaConfigurationImpl {
         throw NotImplementedError()
     }
 }
 
 private val Project.dokkaTask: DokkaTask get() = tasks.getByName<DokkaTask>("dokkaTask")
-
-

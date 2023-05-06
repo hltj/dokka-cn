@@ -1,14 +1,24 @@
 import org.jetbrains.registerDokkaArtifactPublication
 
+plugins {
+    id("org.jetbrains.conventions.kotlin-jvm")
+    id("org.jetbrains.conventions.maven-publish")
+}
+
 dependencies {
-    compileOnly(project(":kotlin-analysis"))
-    implementation(project(":plugins:base"))
-    testImplementation(project(":plugins:base"))
-    testImplementation(project(":plugins:base:base-test-utils"))
-    testImplementation(project(":core:content-matcher-test-utils"))
-    val jsoup_version: String by project
-    testImplementation("org.jsoup:jsoup:$jsoup_version")
-    testImplementation(project(":kotlin-analysis"))
+    compileOnly(projects.core)
+    implementation(kotlin("reflect"))
+    compileOnly(projects.kotlinAnalysis)
+    implementation(projects.plugins.base)
+    testImplementation(projects.plugins.base)
+    testImplementation(projects.plugins.base.baseTestUtils)
+    testImplementation(projects.core.contentMatcherTestUtils)
+    testImplementation(libs.jsoup)
+    testImplementation(projects.kotlinAnalysis)
+
+    testImplementation(projects.core.testApi)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
 }
 
 registerDokkaArtifactPublication("kotlinAsJavaPlugin") {

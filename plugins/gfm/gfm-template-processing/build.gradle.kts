@@ -1,13 +1,24 @@
 import org.jetbrains.registerDokkaArtifactPublication
 
-dependencies {
-    implementation(project(":plugins:base"))
-    implementation(project(":plugins:gfm"))
-    implementation(project(":plugins:all-modules-page"))
-    implementation(project(":plugins:templating"))
+plugins {
+    id("org.jetbrains.conventions.kotlin-jvm")
+    id("org.jetbrains.conventions.maven-publish")
+}
 
-    val coroutines_version: String by project
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
+dependencies {
+    compileOnly(projects.core)
+
+    implementation(kotlin("reflect"))
+    implementation(projects.plugins.base)
+    implementation(projects.plugins.gfm)
+    implementation(projects.plugins.allModulesPage)
+    implementation(projects.plugins.templating)
+
+    implementation(libs.kotlinx.coroutines.core)
+
+    testImplementation(projects.core.testApi)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
 }
 
 registerDokkaArtifactPublication("dokkaGfmTemplateProcessing") {

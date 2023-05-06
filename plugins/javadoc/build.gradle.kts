@@ -1,20 +1,29 @@
 import org.jetbrains.registerDokkaArtifactPublication
 
+plugins {
+    id("org.jetbrains.conventions.kotlin-jvm")
+    id("org.jetbrains.conventions.maven-publish")
+}
+
 dependencies {
-    compileOnly(project(":kotlin-analysis"))
-    implementation("com.soywiz.korlibs.korte:korte-jvm:2.7.0")
-    implementation(project(":plugins:base"))
-    implementation(project(":plugins:kotlin-as-java"))
-    testImplementation(project(":plugins:base:base-test-utils"))
+    compileOnly(projects.core)
+    compileOnly(projects.kotlinAnalysis)
 
-    val kotlinx_html_version: String by project
-    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinx_html_version")
+    implementation(kotlin("reflect"))
+    implementation(libs.soywiz.korte)
+    implementation(projects.plugins.base)
+    implementation(projects.plugins.kotlinAsJava)
 
-    val coroutines_version: String by project
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
+    implementation(libs.kotlinx.html)
+    implementation(libs.kotlinx.coroutines.core)
 
-    val jsoup_version: String by project
-    testImplementation("org.jsoup:jsoup:$jsoup_version")
+    testImplementation(projects.plugins.base.baseTestUtils)
+    testImplementation(projects.core.testApi)
+
+    testImplementation(libs.jsoup)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
 }
 
 registerDokkaArtifactPublication("javadocPlugin") {

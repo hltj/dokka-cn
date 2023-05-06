@@ -1,88 +1,109 @@
-import org.jetbrains.CrossPlatformExec
-import org.jetbrains.SetupMaven
+import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.jetbrains.registerDokkaArtifactPublication
 
-val setupMaven by tasks.register<SetupMaven>("setupMaven")
+plugins {
+    id("org.jetbrains.conventions.kotlin-jvm")
+    id("org.jetbrains.conventions.maven-publish")
+    id("org.jetbrains.conventions.maven-cli-setup")
+}
 
 dependencies {
-    implementation(project(":core"))
-    implementation("org.apache.maven:maven-core:${setupMaven.mavenVersion}")
-    implementation("org.apache.maven:maven-plugin-api:${setupMaven.mavenVersion}")
-    implementation("org.apache.maven.plugin-tools:maven-plugin-annotations:${setupMaven.mavenPluginToolsVersion}")
-    implementation("org.apache.maven:maven-archiver:2.5")
-    implementation(kotlin("stdlib-jdk8"))
+    implementation(projects.core)
+
+    implementation(libs.apacheMaven.core)
+    implementation(libs.apacheMaven.pluginApi)
+    implementation(libs.apacheMaven.pluginAnnotations)
+    implementation(libs.apacheMaven.archiver)
 }
 
-val mavenBuildDir = setupMaven.mavenBuildDir
-val mavenBinDir = setupMaven.mavenBinDir
+val mavenPluginTaskGroup = "maven plugin"
 
-tasks.named<Delete>("clean") {
-    delete(mavenBuildDir)
-    delete(mavenBinDir)
-}
+val generatePom by tasks.registering(Sync::class) {
+    description = "Generate pom.xml for Maven Plugin Plugin"
+    group = mavenPluginTaskGroup
 
-/**
- * Generate pom.xml for Maven Plugin Plugin
- */
-val generatePom by tasks.registering(Copy::class) {
     val dokka_version: String by project
     inputs.property("dokka_version", dokka_version)
 
-    from("$projectDir/pom.tpl.xml") {
-        rename("(.*).tpl.xml", "$1.xml")
+    val pomTemplateFile = layout.projectDirectory.file("pom.template.xml")
+
+    val mavenVersion = mavenCliSetup.mavenVersion.orNull
+    val mavenPluginToolsVersion = mavenCliSetup.mavenPluginToolsVersion.orNull
+
+    from(pomTemplateFile) {
+        rename { it.replace(".template.xml", ".xml") }
+
+        expand(
+            "mavenVersion" to mavenVersion,
+            "dokka_version" to dokka_version,
+            "mavenPluginToolsVersion" to mavenPluginToolsVersion,
+        )
     }
-    into(setupMaven.mavenBuildDir)
 
-    eachFile {
-        filter { line ->
-            line.replace("<maven.version></maven.version>", "<maven.version>${setupMaven.mavenVersion}</maven.version>")
-        }
-        filter { line ->
-            line.replace("<version>dokka_version</version>", "<version>$dokka_version</version>")
-        }
-        filter { line ->
-            line.replace(
-                "<version>maven-plugin-plugin</version>",
-                "<version>${setupMaven.mavenPluginToolsVersion}</version>"
-            )
-        }
+    into(temporaryDir)
+}
+
+val prepareMavenPluginBuildDir by tasks.registering(Sync::class) {
+    description = "Prepares all files for Maven Plugin task execution"
+    group = mavenPluginTaskGroup
+
+    from(tasks.compileKotlin.flatMap { it.destinationDirectory }) { into("classes/java/main") }
+    from(tasks.compileJava.flatMap { it.destinationDirectory }) { into("classes/java/main") }
+
+    from(generatePom)
+
+    into(mavenCliSetup.mavenBuildDir)
+}
+
+val helpMojo by tasks.registering(Exec::class) {
+    group = mavenPluginTaskGroup
+
+    dependsOn(tasks.installMavenBinary, prepareMavenPluginBuildDir)
+
+    workingDir(mavenCliSetup.mavenBuildDir)
+    executable(mavenCliSetup.mvn.get())
+    args("-e", "-B", "org.apache.maven.plugins:maven-plugin-plugin:helpmojo")
+
+    outputs.dir(mavenCliSetup.mavenBuildDir)
+
+    doLast("normalize maven-plugin-help.properties") {
+        // The maven-plugin-help.properties file contains a timestamp by default.
+        // It should be removed as it is not reproducible and impacts Gradle caching
+        val pluginHelpProperties = workingDir.resolve("maven-plugin-help.properties")
+        pluginHelpProperties.writeText(
+            buildString {
+                val lines = pluginHelpProperties.readText().lines().iterator()
+                // the first line is a descriptive comment
+                appendReproducibleNewLine(lines.next())
+                // the second line is the timestamp, which should be ignored
+                lines.next()
+                // the remaining lines are properties
+                lines.forEach { appendReproducibleNewLine(it) }
+            }
+        )
     }
 }
 
-/**
- * Copy compiled classes to [mavenBuildDir] for Maven Plugin Plugin
- */
-val syncClasses by tasks.registering(Sync::class) {
-    dependsOn(tasks.compileKotlin, tasks.compileJava)
-    from("$buildDir/classes/kotlin", "$buildDir/classes/java")
-    into("${setupMaven.mavenBuildDir}/classes/java")
+val pluginDescriptor by tasks.registering(Exec::class) {
+    group = mavenPluginTaskGroup
 
-    preserve {
-        include("**/*.class")
-    }
+    dependsOn(tasks.installMavenBinary, prepareMavenPluginBuildDir)
+
+    workingDir(mavenCliSetup.mavenBuildDir)
+    executable(mavenCliSetup.mvn.get())
+    args(
+        "-e",
+        "-B",
+        "org.apache.maven.plugins:maven-plugin-plugin:descriptor"
+    )
+
+    outputs.dir(layout.buildDirectory.dir("maven/classes/java/main/META-INF/maven"))
 }
 
-val helpMojo by tasks.registering(CrossPlatformExec::class) {
-    dependsOn(setupMaven, generatePom, syncClasses)
-    workingDir(setupMaven.mavenBuildDir)
-    commandLine(setupMaven.mvn, "-e", "-B", "org.apache.maven.plugins:maven-plugin-plugin:helpmojo")
-}
-
-val pluginDescriptor by tasks.registering(CrossPlatformExec::class) {
-    dependsOn(setupMaven, generatePom, syncClasses)
-    workingDir(setupMaven.mavenBuildDir)
-    commandLine(setupMaven.mvn, "-e", "-B", "org.apache.maven.plugins:maven-plugin-plugin:descriptor")
-}
-
-val sourceJar by tasks.registering(Jar::class) {
-    archiveClassifier.set("sources")
-    from(sourceSets["main"].allSource)
-}
-
-tasks.named<Jar>("jar") {
+tasks.jar {
     dependsOn(pluginDescriptor, helpMojo)
     metaInf {
-        from("${setupMaven.mavenBuildDir}/classes/java/main/META-INF")
+        from(mavenCliSetup.mavenBuildDir.map { it.dir("classes/java/main/META-INF") })
     }
     manifest {
         attributes("Class-Path" to configurations.runtimeClasspath.map { configuration ->

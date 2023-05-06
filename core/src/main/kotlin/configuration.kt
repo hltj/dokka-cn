@@ -1,11 +1,6 @@
-@file:Suppress("FunctionName")
-
 package org.jetbrains.dokka
 
-import org.jetbrains.dokka.plugability.ConfigurableBlock
 import org.jetbrains.dokka.utilities.cast
-import org.jetbrains.dokka.utilities.parseJson
-import org.jetbrains.dokka.utilities.toJsonString
 import java.io.File
 import java.io.Serializable
 import java.net.URL
@@ -95,8 +90,6 @@ data class DokkaSourceSetID(
     }
 }
 
-fun DokkaConfigurationImpl(json: String): DokkaConfigurationImpl = parseJson(json)
-
 /**
  * Global options can be configured and applied to all packages and modules at once, overwriting package configuration.
  *
@@ -111,24 +104,21 @@ data class GlobalDokkaConfiguration(
     val sourceLinks: List<SourceLinkDefinitionImpl>?
 )
 
-fun GlobalDokkaConfiguration(json: String): GlobalDokkaConfiguration = parseJson(json)
-
 fun DokkaConfiguration.apply(globals: GlobalDokkaConfiguration): DokkaConfiguration = this.apply {
     sourceSets.forEach {
-        it.perPackageOptions.cast<MutableList<DokkaConfiguration.PackageOptions>>().addAll(globals.perPackageOptions ?: emptyList())
+        it.perPackageOptions.cast<MutableList<DokkaConfiguration.PackageOptions>>()
+            .addAll(globals.perPackageOptions ?: emptyList())
     }
 
     sourceSets.forEach {
-        it.externalDocumentationLinks.cast<MutableSet<DokkaConfiguration.ExternalDocumentationLink>>().addAll(globals.externalDocumentationLinks ?: emptyList())
+        it.externalDocumentationLinks.cast<MutableSet<DokkaConfiguration.ExternalDocumentationLink>>()
+            .addAll(globals.externalDocumentationLinks ?: emptyList())
     }
 
     sourceSets.forEach {
         it.sourceLinks.cast<MutableSet<SourceLinkDefinitionImpl>>().addAll(globals.sourceLinks ?: emptyList())
     }
 }
-
-fun DokkaConfiguration.toJsonString(): String = toJsonString(this)
-fun <T : ConfigurableBlock> T.toJsonString(): String = toJsonString(this)
 
 interface DokkaConfiguration : Serializable {
     val moduleName: String
@@ -183,6 +173,7 @@ interface DokkaConfiguration : Serializable {
         val dependentSourceSets: Set<DokkaSourceSetID>
         val samples: Set<File>
         val includes: Set<File>
+
         @Deprecated(message = "Use [documentedVisibilities] property for a more flexible control over documented visibilities")
         val includeNonPublic: Boolean
         val reportUndocumented: Boolean
@@ -247,6 +238,7 @@ interface DokkaConfiguration : Serializable {
 
     interface PackageOptions : Serializable {
         val matchingRegex: String
+
         @Deprecated("Use [documentedVisibilities] property for a more flexible control over documented visibilities")
         val includeNonPublic: Boolean
         val reportUndocumented: Boolean?
@@ -263,6 +255,7 @@ interface DokkaConfiguration : Serializable {
     }
 }
 
+@Suppress("FunctionName")
 fun ExternalDocumentationLink(
     url: URL? = null,
     packageListUrl: URL? = null
@@ -275,10 +268,8 @@ fun ExternalDocumentationLink(
         throw IllegalArgumentException("url or url && packageListUrl must not be null for external documentation link")
 }
 
-
+@Suppress("FunctionName")
 fun ExternalDocumentationLink(
     url: String, packageListUrl: String? = null
 ): ExternalDocumentationLinkImpl =
     ExternalDocumentationLink(url.let(::URL), packageListUrl?.let(::URL))
-
-

@@ -1,57 +1,99 @@
+@file:Suppress("UnstableApiUsage")
+
 rootProject.name = "dokka"
 
-include("core")
-include("core:test-api")
-include("core:content-matcher-test-utils")
-
-include("kotlin-analysis")
-include("kotlin-analysis:intellij-dependency")
-include("kotlin-analysis:compiler-dependency")
-
-include("runners:gradle-plugin")
-include("runners:cli")
-include("runners:maven-plugin")
-
-include("plugins:base")
-include("plugins:base:frontend")
-include("plugins:base:search-component")
-include("plugins:base:base-test-utils")
-include("plugins:all-modules-page")
-include("plugins:templating")
-include("plugins:versioning")
-include("plugins:android-documentation")
-
-include("plugins:mathjax")
-include("plugins:gfm")
-include("plugins:gfm:gfm-template-processing")
-include("plugins:jekyll")
-include("plugins:jekyll:jekyll-template-processing")
-include("plugins:kotlin-as-java")
-include("plugins:javadoc")
-
-include("integration-tests")
-include("integration-tests:gradle")
-include("integration-tests:cli")
-include("integration-tests:maven")
-
-include("test-utils")
-
-include("mkdocs")
-
 pluginManagement {
-    val kotlin_version: String by settings
-    plugins {
-        id("org.jetbrains.kotlin.jvm") version kotlin_version
-        id("com.github.johnrengelman.shadow") version "7.1.2"
-        id("com.gradle.plugin-publish") version "0.20.0"
+    includeBuild("build-logic")
+
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
     }
 }
 
-val isCiBuild = System.getenv("GITHUB_ACTIONS") != null || System.getenv("TEAMCITY_VERSION") != null
+dependencyResolutionManagement {
+
+    // subproject :kotlin-analysis:intellij-dependency requires specific repositories that should not be used in
+    // the other subprojects, so use PREFER_PROJECT to allow subprojects to override the repositories defined here.
+    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
+
+    repositories {
+        mavenCentral()
+        google()
+
+        // Declare the Node.js & Yarn download repositories
+        // Required by Gradle Node plugin: https://github.com/node-gradle/gradle-node-plugin/blob/3.5.1/docs/faq.md#is-this-plugin-compatible-with-centralized-repositories-declaration
+        exclusiveContent {
+            forRepository {
+                ivy("https://cache-redirector.jetbrains.com/nodejs.org/dist/") {
+                    name = "Node Distributions at $url"
+                    patternLayout { artifact("v[revision]/[artifact](-v[revision]-[classifier]).[ext]") }
+                    metadataSources { artifact() }
+                    content { includeModule("org.nodejs", "node") }
+                }
+            }
+            filter { includeGroup("org.nodejs") }
+        }
+
+        exclusiveContent {
+            forRepository {
+                ivy("https://github.com/yarnpkg/yarn/releases/download") {
+                    name = "Yarn Distributions at $url"
+                    patternLayout { artifact("v[revision]/[artifact](-v[revision]).[ext]") }
+                    metadataSources { artifact() }
+                    content { includeModule("com.yarnpkg", "yarn") }
+                }
+            }
+            filter { includeGroup("com.yarnpkg") }
+        }
+    }
+}
 
 plugins {
     `gradle-enterprise`
 }
+
+include(
+    ":core",
+    ":core:test-api",
+    ":core:content-matcher-test-utils",
+
+    ":kotlin-analysis",
+    ":kotlin-analysis:intellij-dependency",
+    ":kotlin-analysis:compiler-dependency",
+
+    ":runners:gradle-plugin",
+    ":runners:cli",
+    ":runners:maven-plugin",
+
+    ":plugins:base",
+    ":plugins:base:frontend",
+    ":plugins:base:search-component",
+    ":plugins:base:base-test-utils",
+    ":plugins:all-modules-page",
+    ":plugins:templating",
+    ":plugins:versioning",
+    ":plugins:android-documentation",
+
+    ":plugins:mathjax",
+    ":plugins:gfm",
+    ":plugins:gfm:gfm-template-processing",
+    ":plugins:jekyll",
+    ":plugins:jekyll:jekyll-template-processing",
+    ":plugins:kotlin-as-java",
+    ":plugins:javadoc",
+
+    ":integration-tests",
+    ":integration-tests:gradle",
+    ":integration-tests:cli",
+    ":integration-tests:maven",
+
+    ":mkdocs",
+)
+
+val isCiBuild = System.getenv("GITHUB_ACTIONS") != null || System.getenv("TEAMCITY_VERSION") != null
+
+
 
 gradleEnterprise {
     buildScan {
@@ -60,3 +102,6 @@ gradleEnterprise {
         publishAlwaysIf(isCiBuild)
     }
 }
+
+
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

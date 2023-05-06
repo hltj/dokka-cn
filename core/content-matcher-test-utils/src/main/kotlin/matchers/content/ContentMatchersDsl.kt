@@ -70,6 +70,23 @@ fun ContentMatcherBuilder<*>.skipAllNotMatching() {
 // Convenience functions:
 fun ContentMatcherBuilder<*>.group(block: ContentMatcherBuilder<ContentGroup>.() -> Unit) = composite(block)
 
+fun ContentMatcherBuilder<*>.tabbedGroup(
+    block: ContentMatcherBuilder<ContentGroup>.() -> Unit
+) = composite<ContentGroup> {
+    block()
+    check { assertThat(this::style).transform { style -> style.contains(ContentStyle.TabbedContent) }.isEqualTo(true) }
+}
+
+fun ContentMatcherBuilder<*>.tab(
+    tabbedContentType: TabbedContentType, block: ContentMatcherBuilder<ContentGroup>.() -> Unit
+) = composite<ContentGroup> {
+    block()
+    check {
+        assertThat(this::extra).transform { extra -> extra[TabbedContentTypeExtra]?.value }
+            .isEqualTo(tabbedContentType)
+    }
+}
+
 fun ContentMatcherBuilder<*>.header(expectedLevel: Int? = null, block: ContentMatcherBuilder<ContentHeader>.() -> Unit) =
     composite<ContentHeader> {
         block()

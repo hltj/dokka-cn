@@ -2,13 +2,15 @@ import org.jetbrains.DokkaPublicationBuilder.Component.Shadow
 import org.jetbrains.registerDokkaArtifactPublication
 
 plugins {
+    id("org.jetbrains.conventions.kotlin-jvm")
+    id("org.jetbrains.conventions.maven-publish")
     id("com.github.johnrengelman.shadow")
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-cli-jvm:0.3.4")
-    implementation(project(":core"))
-    implementation(kotlin("stdlib"))
+    implementation(projects.core)
+    implementation(libs.kotlinx.cli)
+
     testImplementation(kotlin("test-junit"))
 }
 
@@ -23,8 +25,7 @@ tasks {
     }
 }
 
-registerDokkaArtifactPublication("dokkaCli"){
+registerDokkaArtifactPublication("dokkaCli") {
     artifactId = "dokka-cli"
     component = Shadow
 }
-

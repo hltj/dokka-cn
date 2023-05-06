@@ -1,20 +1,26 @@
-import org.jetbrains.SetupMaven
 import org.jetbrains.dependsOnMavenLocalPublication
 
-evaluationDependsOn(":runners:maven-plugin")
+plugins {
+    id("org.jetbrains.conventions.dokka-integration-test")
+    id("org.jetbrains.conventions.maven-cli-setup")
+}
 
 dependencies {
-    implementation(kotlin("stdlib"))
+    implementation(projects.integrationTests)
+
     implementation(kotlin("test-junit"))
 }
 
 tasks.integrationTest {
     dependsOnMavenLocalPublication()
 
-    val setupMavenTask = project(":runners:maven-plugin").tasks.withType<SetupMaven>().single()
-    dependsOn(setupMavenTask)
+    dependsOn(tasks.installMavenBinary)
+    val mvn = mavenCliSetup.mvn
+    inputs.file(mvn)
 
     val dokka_version: String by project
     environment("DOKKA_VERSION", dokka_version)
-    environment("MVN_BINARY_PATH", setupMavenTask.mvn.absolutePath)
+    doFirst("workaround for https://github.com/gradle/gradle/issues/24267") {
+        environment("MVN_BINARY_PATH", mvn.get().asFile.invariantSeparatorsPath)
+    }
 }

@@ -14,7 +14,6 @@ import org.jetbrains.dokka.model.orEmpty
 import org.jetbrains.dokka.model.properties.WithExtraProperties
 import org.jetbrains.dokka.pages.ContentKind
 import org.jetbrains.dokka.pages.ContentStyle
-import org.jetbrains.dokka.pages.SimpleAttr
 import org.jetbrains.dokka.pages.TextStyle
 import org.jetbrains.dokka.utilities.DokkaLogger
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -229,7 +228,6 @@ internal fun PageContentBuilder.DocumentableContentBuilder.samplesSectionContent
             sourceSets = setOf(sourceSet),
             kind = ContentKind.Sample,
             styles = setOf(TextStyle.Monospace, ContentStyle.RunnableSample),
-            extra = mainExtra + SimpleAttr.header("Samples")
         ) {
             samples.filter { it.value.isEmpty() || sourceSet in it.value }
                 .forEach { text(text = it.key, sourceSets = setOf(sourceSet)) }
@@ -333,7 +331,6 @@ private fun PageContentBuilder.DocumentableContentBuilder.tableSectionContentBlo
     table(
         kind = kind,
         sourceSets = sourceSets,
-        extra = mainExtra + SimpleAttr.header(blockName)
     ) {
         body()
     }
@@ -342,5 +339,3 @@ private fun PageContentBuilder.DocumentableContentBuilder.tableSectionContentBlo
 private fun DRI.friendlyClassName() = classNames?.substringAfterLast(".")
 
 private fun <T> Map<String, SourceSetDependent<T>>.availableSourceSets() = values.flatMap { it.keys }.toSet()
-
-
