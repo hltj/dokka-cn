@@ -1,11 +1,15 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package content.seealso
 
 import matchers.content.*
 import org.jetbrains.dokka.base.testApi.testRunner.BaseAbstractTest
 import org.jetbrains.dokka.model.DisplaySourceSet
 import org.jetbrains.dokka.pages.ContentDRILink
-import org.junit.jupiter.api.Test
 import utils.*
+import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ContentForSeeAlsoTest : BaseAbstractTest() {
@@ -13,6 +17,7 @@ class ContentForSeeAlsoTest : BaseAbstractTest() {
         sourceSets {
             sourceSet {
                 sourceRoots = listOf("src/")
+                classpath = listOfNotNull(jvmStdlibPath)
                 analysisPlatform = "jvm"
             }
         }
@@ -171,6 +176,7 @@ class ContentForSeeAlsoTest : BaseAbstractTest() {
         }
     }
 
+    @OnlyDescriptors("No link for `abc` in K1")
     @Test
     fun `undocumented seealso with reference to parameter for class`() {
         testInline(
@@ -201,7 +207,7 @@ class ContentForSeeAlsoTest : BaseAbstractTest() {
                             header(4) { +"See also" }
                             table {
                                 group {
-                                    +"abc"
+                                    +"abc"  // link { +"abc" }
                                 }
                             }
                         }
@@ -212,6 +218,7 @@ class ContentForSeeAlsoTest : BaseAbstractTest() {
         }
     }
 
+    @OnlyDescriptors("issue #3179")
     @Test
     fun `undocumented seealso with reference to property for class`() {
         testInline(
@@ -305,6 +312,7 @@ class ContentForSeeAlsoTest : BaseAbstractTest() {
         }
     }
 
+    @OnlyDescriptors("issue #3179")
     @Test
     fun `documented seealso with reference to property for class`() {
         testInline(

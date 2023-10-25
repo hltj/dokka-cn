@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package transformers
 
 import org.jetbrains.dokka.DokkaConfiguration
@@ -8,9 +12,9 @@ import org.jetbrains.dokka.model.childrenOfType
 import org.jetbrains.dokka.model.dfs
 import org.jetbrains.dokka.model.firstChildOfType
 import org.jetbrains.dokka.pages.*
-import org.jetbrains.kotlin.utils.addIfNotNull
-import org.junit.jupiter.api.Test
 import utils.assertNotNull
+import utils.findSectionWithName
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
@@ -39,22 +43,13 @@ class MergeImplicitExpectActualDeclarationsTest : BaseAbstractTest() {
                 sourceRoots = listOf("src/jvmMain/kotlin/pageMerger/Test.kt")
             }
         }
-        pluginsConfigurations.addIfNotNull(
+        pluginsConfigurations.add(
             PluginConfigurationImpl(
                 DokkaBase::class.qualifiedName!!,
                 DokkaConfiguration.SerializationFormat.JSON,
                 """{ "mergeImplicitExpectActualDeclarations": $switchOn }""",
             )
         )
-    }
-
-    private fun ClasslikePageNode.findSectionWithName(name: String) : ContentNode? {
-        var sectionHeader: ContentHeader? = null
-        return content.dfs { node ->
-            node.children.filterIsInstance<ContentHeader>().any { header ->
-                header.children.firstOrNull { it is ContentText && it.text == name }?.also { sectionHeader = header } != null
-            }
-        }?.children?.dropWhile { child -> child != sectionHeader  }?.drop(1)?.firstOrNull()
     }
 
     private fun ContentNode.findTabWithType(type: TabbedContentType): ContentNode? = dfs { node ->
@@ -113,6 +108,38 @@ class MergeImplicitExpectActualDeclarationsTest : BaseAbstractTest() {
         }
     }
 
+    @Test
+    fun `should merge class and typealias`() {
+        testInline(
+            """
+                |/src/jvmMain/kotlin/pageMerger/Test.kt
+                |package pageMerger
+                |
+                |class A {
+                |   fun method1(): String
+                |}
+                |
+                |/src/jsMain/kotlin/pageMerger/Test.kt
+                |package pageMerger
+                |
+                |typealias A = String
+                |
+        """.trimMargin(),
+            configuration(true),
+            cleanupOutput = true
+        ) {
+            pagesTransformationStage = { root ->
+                val classPage = root.dfs { it.name == "A" } as? ClasslikePageNode
+                assertNotNull(classPage, "Tested class not found!")
+
+                val platformHintedContent = classPage.content.dfs { it is PlatformHintedContent }.assertNotNull("platformHintedContent")
+                assertEquals(2, platformHintedContent.sourceSets.size)
+
+                platformHintedContent.dfs { it is ContentText && it.text == "class " }.assertNotNull("class keyword")
+                platformHintedContent.dfs { it is ContentText && it.text == "typealias " }.assertNotNull("typealias keyword")
+            }
+        }
+    }
     @Test
     fun `should merge method and prop`() {
         testInline(
@@ -267,7 +294,8 @@ class MergeImplicitExpectActualDeclarationsTest : BaseAbstractTest() {
                 assertNotNull(classPage, "Tested class not found!")
 
                 val functions = classPage.findSectionWithName("Functions").assertNotNull("Functions")
-                val method1 = functions.children.singleOrNull().assertNotNull("method1")
+                val method1 = functions.children.single { it.sourceSets.size == 2 && it.dci.dri.singleOrNull()?.callable?.name == "method1" }
+                    .assertNotNull("method1")
 
                 assertEquals(
                     2,

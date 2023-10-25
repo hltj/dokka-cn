@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package org.jetbrains.dokka.utilities
 
 import com.fasterxml.jackson.core.JsonGenerator
@@ -13,6 +17,7 @@ import com.fasterxml.jackson.core.type.TypeReference as JacksonTypeReference
 private val objectMapper = run {
     val module = SimpleModule().apply {
         addSerializer(FileSerializer)
+        addAbstractTypeMapping(Set::class.java, LinkedHashSet::class.java)
     }
     jacksonObjectMapper()
         .registerModule(module)
@@ -20,10 +25,11 @@ private val objectMapper = run {
 }
 
 @PublishedApi
-internal class TypeReference<T> private constructor(
+internal class TypeReference<T> @PublishedApi internal constructor(
     internal val jackson: JacksonTypeReference<T>
 ) {
     companion object {
+        @PublishedApi
         internal inline operator fun <reified T> invoke(): TypeReference<T> = TypeReference(jacksonTypeRef())
     }
 }

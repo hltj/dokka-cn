@@ -1,20 +1,28 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import org.jetbrains.registerDokkaArtifactPublication
 
 plugins {
     id("org.jetbrains.conventions.kotlin-jvm")
     id("org.jetbrains.conventions.maven-publish")
+    id("org.jetbrains.conventions.dokka-html-frontend-files")
+    id("org.jetbrains.conventions.base-unit-test")
 }
 
 dependencies {
     compileOnly(projects.core)
+    compileOnly(projects.subprojects.analysisKotlinApi)
 
+    implementation(projects.subprojects.analysisMarkdownJb)
+
+    // Other
     implementation(kotlin("reflect"))
-
     implementation(libs.kotlinx.coroutines.core)
-
-    compileOnly(projects.kotlinAnalysis)
     implementation(libs.jsoup)
-
+    implementation(libs.freemarker)
+    implementation(libs.kotlinx.html)
     implementation(libs.jackson.kotlin)
     constraints {
         implementation(libs.jackson.databind) {
@@ -22,56 +30,51 @@ dependencies {
         }
     }
 
-    implementation(libs.freemarker)
+    // Test only
+    testImplementation(kotlin("test"))
+    testImplementation(libs.junit.jupiterParams)
 
-    testImplementation(projects.plugins.base.baseTestUtils)
+    symbolsTestConfiguration(project(path = ":subprojects:analysis-kotlin-symbols", configuration = "shadow"))
+    descriptorsTestConfiguration(project(path = ":subprojects:analysis-kotlin-descriptors", configuration = "shadow"))
+    testImplementation(projects.plugins.base.baseTestUtils) {
+        exclude(module = "analysis-kotlin-descriptors")
+    }
     testImplementation(projects.core.contentMatcherTestUtils)
-
-    implementation(libs.kotlinx.html)
-
-    testImplementation(projects.kotlinAnalysis)
     testImplementation(projects.core.testApi)
-    testImplementation(platform(libs.junit.bom))
-    testImplementation(libs.junit.jupiter)
+
+    dokkaHtmlFrontendFiles(projects.plugins.base.frontend) {
+        because("fetch frontend files from subproject :plugins:base:frontend")
+    }
 }
 
-val projectDistDir = project(":plugins:base:frontend").file("dist")
-val generateFrontendFiles = tasks.getByPath(":plugins:base:frontend:generateFrontendFiles")
+// access the frontend files via the dependency on :plugins:base:frontend
+val dokkaHtmlFrontendFiles: Provider<FileCollection> =
+    configurations.dokkaHtmlFrontendFiles.map { frontendFiles ->
+        frontendFiles.incoming.artifacts.artifactFiles
+    }
 
-val copyJsFiles by tasks.registering(Copy::class) {
-    from(projectDistDir) {
+val preparedokkaHtmlFrontendFiles by tasks.registering(Sync::class) {
+    description = "copy Dokka Base frontend files into the resources directory"
+
+    from(dokkaHtmlFrontendFiles) {
         include("*.js")
+        into("dokka/scripts")
     }
-    dependsOn(generateFrontendFiles)
-    destinationDir =
-        File(sourceSets.main.get().resources.sourceDirectories.singleFile, "dokka/scripts")
-}
 
-val copyCssFiles by tasks.registering(Copy::class) {
-    from(projectDistDir) {
+    from(dokkaHtmlFrontendFiles) {
         include("*.css")
+        into("dokka/styles")
     }
-    dependsOn(generateFrontendFiles)
-    destinationDir =
-        File(sourceSets.main.get().resources.sourceDirectories.singleFile, "dokka/styles")
+
+    into(layout.buildDirectory.dir("generated/src/main/resources"))
 }
 
-val copyFrontend by tasks.registering {
-    dependsOn(copyJsFiles, copyCssFiles)
+sourceSets.main {
+    resources.srcDir(preparedokkaHtmlFrontendFiles.map { it.destinationDir })
 }
 
-tasks {
-    processResources {
-        dependsOn(copyFrontend)
-    }
-
-    sourcesJar {
-        dependsOn(processResources)
-    }
-
-    test {
-        maxHeapSize = "4G"
-    }
+tasks.test {
+    maxHeapSize = "4G"
 }
 
 registerDokkaArtifactPublication("dokkaBase") {

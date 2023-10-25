@@ -1,9 +1,13 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package translators
 
-import org.jetbrains.dokka.links.DRI
 import org.jetbrains.dokka.base.testApi.testRunner.BaseAbstractTest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import org.jetbrains.dokka.links.DRI
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class Bug1341 : BaseAbstractTest() {
     @Test

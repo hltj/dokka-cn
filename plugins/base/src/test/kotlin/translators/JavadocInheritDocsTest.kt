@@ -1,14 +1,17 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package translators
 
+import org.jetbrains.dokka.base.testApi.testRunner.BaseAbstractTest
 import org.jetbrains.dokka.model.doc.CustomDocTag
 import org.jetbrains.dokka.model.doc.Description
 import org.jetbrains.dokka.model.doc.P
 import org.jetbrains.dokka.model.doc.Text
-import org.jetbrains.dokka.base.testApi.testRunner.BaseAbstractTest
-import org.junit.Ignore
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Test
+import kotlin.test.Ignore
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class JavadocInheritDocsTest : BaseAbstractTest() {
     val configuration = dokkaConfiguration {
@@ -131,7 +134,7 @@ class JavadocInheritDocsTest : BaseAbstractTest() {
     }
 
     @Test
-    @Disabled("This should be enabled when we have proper tag inheritance in javadoc parser")
+    @Ignore // This should be enabled when we have proper tag inheritance in javadoc parser
     fun `work when inherited part is empty in supertype but present in its supertype`() {
         testInline(
             """

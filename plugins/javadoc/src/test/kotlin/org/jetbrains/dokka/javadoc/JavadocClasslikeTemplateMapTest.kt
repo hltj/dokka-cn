@@ -1,8 +1,12 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package org.jetbrains.dokka.javadoc
 
 import org.jetbrains.dokka.javadoc.pages.JavadocClasslikePageNode
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 internal class JavadocClasslikeTemplateMapTest : AbstractJavadocTemplateMapTest() {
 
@@ -339,6 +343,104 @@ internal class JavadocClasslikeTemplateMapTest : AbstractJavadocTemplateMapTest(
             val properties = assertIsInstance<List<*>>(map["properties"])
             val property = assertIsInstance<Map<String, Any?>>(properties.first())
             assertEquals("public final static <a href=https://docs.oracle.com/javase/8/docs/api/java/lang/String.html>String</a> <a href=TestKt.html#TEST_VAL>TEST_VAL</a>", "${property["modifiers"]} ${property["signature"]}")
+        }
+    }
+
+    @Test
+    fun `@author @since @return method tags`(){
+        dualTestTemplateMapInline(
+            kotlin =
+            """
+            /src/source0.kt
+            package com.test.package0
+            class TestClass {
+                /**
+                 * Testing @author @since @return method tags
+                 * @since 1.2
+                 * @since 08 april 2023 
+                 * @return parameter's value in lower case
+                 */
+                fun testFunction(testParam: String?): String {
+                    return testParam?.lowercase() ?: ""
+                }
+            }
+            """,
+            java =
+            """
+            /src/com/test/package0/TestClass.java
+            package com.test.package0;
+            public final class TestClass {
+                /**
+                 * Testing @author @since @return method tags
+                 * @since 1.2
+                 * @since 08 april 2023 
+                 * @return parameter's value in lower case
+                 */
+                public final String testFunction(String testParam) {
+                    return testParam.toLowerCase();
+                }
+            }
+            """
+        ) {
+            val map = singlePageOfType<JavadocClasslikePageNode>().templateMap
+            assertEquals("TestClass", map["name"])
+
+            val methods = assertIsInstance<Map<String, Any?>>(map["methods"])
+            val testFunction = assertIsInstance<List<Map<String, Any?>>>(methods["own"]).single()
+            assertEquals("Testing @author @since @return method tags", testFunction["brief"])
+
+            assertEquals("testFunction", testFunction["name"])
+            assertEquals(listOf("<p>1.2</p>", "<p>08 april 2023</p>"), testFunction["sinceTagContent"])
+            assertEquals("<p>parameter's value in lower case</p>", testFunction["returnTagContent"])
+        }
+    }
+
+    @Test
+    fun `@author @since class tags`(){
+        dualTestTemplateMapInline(
+            kotlin =
+            """
+            /src/source0.kt
+            package com.test.package0
+            /**
+             * Testing @author @since class tags
+             * @author Test Author
+             * @author Test Author2
+             * @author Test Author3
+             * @since 1.2
+             * @since 08 april 2023 
+             */
+            class TestClass {
+                fun testFunction(testParam: String?): String {
+                    return testParam?.lowercase() ?: ""
+                }
+            }
+            """,
+            java =
+            """
+            /src/com/test/package0/TestClass.java
+            package com.test.package0;
+            /**
+             * Testing @author @since class tags
+             * @author Test Author
+             * @author Test Author2
+             * @author Test Author3
+             * @since 1.2
+             * @since 08 april 2023 
+             */
+            public final class TestClass {
+                public final String testFunction(String testParam) {
+                    return testParam.toLowerCase();
+                }
+            }
+            """
+        ) {
+            val map = singlePageOfType<JavadocClasslikePageNode>().templateMap
+
+            assertEquals("TestClass", map["name"])
+            assertEquals("<p>Testing @author @since class tags</p>", map["classlikeDocumentation"])
+            assertEquals(listOf("<p>Test Author</p>", "<p>Test Author2</p>", "<p>Test Author3</p>"), map["authorTagContent"])
+            assertEquals(listOf("<p>1.2</p>", "<p>08 april 2023</p>"), map["sinceTagContent"])
         }
     }
 

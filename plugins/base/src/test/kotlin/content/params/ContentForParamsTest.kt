@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package content.params
 
 import matchers.content.*
@@ -9,9 +13,9 @@ import org.jetbrains.dokka.model.doc.DocumentationNode
 import org.jetbrains.dokka.model.doc.Param
 import org.jetbrains.dokka.model.doc.Text
 import org.jetbrains.dokka.pages.*
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
-import org.junit.jupiter.api.Test
+import org.jetbrains.dokka.utilities.firstIsInstanceOrNull
 import utils.*
+import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ContentForParamsTest : BaseAbstractTest() {
@@ -19,6 +23,7 @@ class ContentForParamsTest : BaseAbstractTest() {
         sourceSets {
             sourceSet {
                 sourceRoots = listOf("src/")
+                classpath = listOfNotNull(jvmStdlibPath)
                 analysisPlatform = "jvm"
             }
         }
@@ -242,6 +247,7 @@ class ContentForParamsTest : BaseAbstractTest() {
         }
     }
 
+
     @Test
     fun `deprecated with multiple links inside`() {
         testInline(
@@ -345,6 +351,7 @@ class ContentForParamsTest : BaseAbstractTest() {
             }
         }
     }
+
 
     @Test
     fun `deprecated with an multiple inline links`() {
@@ -473,6 +480,7 @@ class ContentForParamsTest : BaseAbstractTest() {
         }
     }
 
+    @OnlyDescriptors("Fixed in 1.9.20 (IMPORT STAR)")
     @Test
     fun `multiline kotlin throws with comment`() {
         testInline(
@@ -523,7 +531,7 @@ class ContentForParamsTest : BaseAbstractTest() {
                                             link {
                                                 check {
                                                     assertEquals(
-                                                        "java.lang/RuntimeException///PointingToDeclaration/",
+                                                        "kotlin/RuntimeException///PointingToDeclaration/",
                                                         (this as ContentDRILink).address.toString()
                                                     )
                                                 }
@@ -673,6 +681,7 @@ class ContentForParamsTest : BaseAbstractTest() {
     }
 
 
+
     @Test
     fun `documentation splitted in 2 using enters`() {
         testInline(
@@ -792,7 +801,7 @@ class ContentForParamsTest : BaseAbstractTest() {
             | /**
             | * a normal comment
             | *
-            | * @return empty string when [Hash Map](java.util.HashMap.containsKey) doesn't contain value.
+            | * @return empty string when [Hash Map][java.util.HashMap.containsKey] doesn't contain value.
             | *
             | */
             |fun sample(): String {
@@ -829,6 +838,7 @@ class ContentForParamsTest : BaseAbstractTest() {
             }
         }
     }
+
 
     @Test
     fun `list with links and description`() {
@@ -1505,10 +1515,10 @@ class ContentForParamsTest : BaseAbstractTest() {
                     it.documentation[jvm]
                 }
 
-                assert(forJvm.size == 2)
+                assertEquals(2, forJvm.size)
                 val (first, second) = forJvm.map { it.paramsDescription() }
-                assert(first == "comment to first param")
-                assert(second == "comment to second param")
+                assertEquals("comment to first param", first)
+                assertEquals("comment to second param", second)
             }
         }
     }

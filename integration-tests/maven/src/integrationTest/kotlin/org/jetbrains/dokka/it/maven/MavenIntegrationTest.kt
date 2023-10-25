@@ -1,8 +1,13 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package org.jetbrains.dokka.it.maven
 
+import org.intellij.lang.annotations.Language
 import org.jetbrains.dokka.it.AbstractIntegrationTest
-import org.jetbrains.dokka.it.awaitProcessResult
 import org.jetbrains.dokka.it.ProcessResult
+import org.jetbrains.dokka.it.awaitProcessResult
 import java.io.File
 import kotlin.test.*
 
@@ -22,9 +27,31 @@ class MavenIntegrationTest : AbstractIntegrationTest() {
             writeText(readText().replace("\$dokka_version", currentDokkaVersion))
         }
         val customResourcesDir = File(templateProjectDir, "customResources")
-        if(customResourcesDir.exists() && customResourcesDir.isDirectory) {
+        if (customResourcesDir.exists() && customResourcesDir.isDirectory) {
             customResourcesDir.copyRecursively(File(projectDir, "customResources"), overwrite = true)
         }
+    }
+
+    @Test
+    fun `dokka help`() {
+        val result = ProcessBuilder().directory(projectDir)
+            .command(mavenBinaryFile.absolutePath, "dokka:help", "-U", "-e")
+            .start()
+            .awaitProcessResult()
+
+        // format the output to remove blank lines and make newlines system-independent
+        val output = result.output.lines().filter { it.isNotBlank() }.joinToString("\n")
+
+        assertContains(
+            output,
+            """
+                |This plugin has 4 goals:
+                |dokka:dokka
+                |dokka:help
+                |dokka:javadoc
+                |dokka:javadocJar
+            """.trimMargin()
+        )
     }
 
     @Test
@@ -56,15 +83,21 @@ class MavenIntegrationTest : AbstractIntegrationTest() {
             assertNoEmptySpans(file)
         }
 
-        assertEquals(
-            """#logo{background-image:url('https://upload.wikimedia.org/wikipedia/commons/9/9d/Ubuntu_logo.svg');}""",
-            stylesDir.resolve("logo-styles.css").readText().replace("\\s".toRegex(), ""),
+        assertTrue(
+            stylesDir.resolve("logo-styles.css").readText().contains(
+                "--dokka-logo-image-url: url('https://upload.wikimedia.org/wikipedia/commons/9/9d/Ubuntu_logo.svg');",
+            )
         )
         assertTrue(stylesDir.resolve("custom-style-to-add.css").isFile)
         projectDir.allHtmlFiles().forEach { file ->
-            if(file.name != "navigation.html") assertTrue("custom-style-to-add.css" in file.readText(), "custom styles not added to html file ${file.name}")
+            if (file.name != "navigation.html") {
+                assertTrue(
+                    "custom-style-to-add.css" in file.readText(),
+                    "custom styles not added to html file ${file.name}"
+                )
+            }
         }
-        assertEquals("""/* custom stylesheet */""", stylesDir.resolve("custom-style-to-add.css").readText())
+        assertTrue(stylesDir.resolve("custom-style-to-add.css").readText().contains("""/* custom stylesheet */"""))
         assertTrue(imagesDir.resolve("custom-resource.svg").isFile)
 
         assertConfiguredVisibility(projectDir)
@@ -166,5 +199,21 @@ class MavenIntegrationTest : AbstractIntegrationTest() {
                 Regex("it\\.overriddenVisibility/-visible-private-class/private-val\\.html"),
             )
         )
+    }
+
+    companion object {
+        /*
+         * TODO replace with kotlin.test.assertContains after migrating to Kotlin language version 1.5+
+         */
+        fun assertContains(
+            charSequence: CharSequence,
+            @Language("TEXT") other: CharSequence,
+            ignoreCase: Boolean = false
+        ) {
+            asserter.assertTrue(
+                { "Expected the char sequence to contain the substring.\nCharSequence <$charSequence>, substring <$other>, ignoreCase <$ignoreCase>." },
+                charSequence.contains(other, ignoreCase)
+            )
+        }
     }
 }

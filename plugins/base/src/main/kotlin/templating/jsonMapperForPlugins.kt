@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package org.jetbrains.dokka.base.templating
 
 import com.fasterxml.jackson.core.JsonGenerator
@@ -11,6 +15,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonTypeRef
 import org.jetbrains.dokka.base.DokkaBase
 import java.io.File
 
+// TODO [beresnev] try to get rid of this copy-paste in #2933
 // THIS IS COPIED FROM BASE SINCE IT NEEDS TO BE INSTANTIATED ON THE SAME CLASS LOADER AS PLUGINS
 
 private val objectMapper = run {
@@ -26,17 +31,18 @@ private val objectMapper = run {
 }
 
 @PublishedApi
-internal class TypeReference<T> private constructor(
+internal class TypeReference<T> @PublishedApi internal constructor(
     internal val jackson: com.fasterxml.jackson.core.type.TypeReference<T>
 ) {
     companion object {
+        @PublishedApi
         internal inline operator fun <reified T> invoke(): TypeReference<T> = TypeReference(jacksonTypeRef())
     }
 }
 
-fun toJsonString(value: Any): String = objectMapper.writeValueAsString(value)
+public fun toJsonString(value: Any): String = objectMapper.writeValueAsString(value)
 
-inline fun <reified T : Any> parseJson(json: String): T = parseJson(json, TypeReference())
+public inline fun <reified T : Any> parseJson(json: String): T = parseJson(json, TypeReference())
 
 @PublishedApi
 internal fun <T : Any> parseJson(json: String, typeReference: TypeReference<T>): T =

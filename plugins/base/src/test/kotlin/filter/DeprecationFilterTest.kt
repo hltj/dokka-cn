@@ -1,10 +1,14 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package filter
 
 import org.jetbrains.dokka.DokkaDefaults
 import org.jetbrains.dokka.PackageOptionsImpl
 import org.jetbrains.dokka.base.testApi.testRunner.BaseAbstractTest
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
+import kotlin.test.Test
+import kotlin.test.assertTrue
 
 class DeprecationFilterTest : BaseAbstractTest() {
 
@@ -14,6 +18,7 @@ class DeprecationFilterTest : BaseAbstractTest() {
             sourceSets {
                 sourceSet {
                     sourceRoots = listOf("src/main/kotlin/basic/Test.kt")
+                    classpath = listOfNotNull(jvmStdlibPath)
                     skipDeprecated = false
                     perPackageOptions = mutableListOf(
                         PackageOptionsImpl(
@@ -41,7 +46,7 @@ class DeprecationFilterTest : BaseAbstractTest() {
             configuration
         ) {
             preMergeDocumentablesTransformationStage = {
-                Assertions.assertTrue(
+                assertTrue(
                     it.first().packages.first().functions.isEmpty()
                 )
             }
@@ -72,7 +77,7 @@ class DeprecationFilterTest : BaseAbstractTest() {
             configuration
         ) {
             preMergeDocumentablesTransformationStage = {
-                Assertions.assertTrue(
+                assertTrue(
                     it.first().packages.first().functions.size == 1
                 )
             }
@@ -103,7 +108,7 @@ class DeprecationFilterTest : BaseAbstractTest() {
             configuration
         ) {
             preMergeDocumentablesTransformationStage = {
-                Assertions.assertTrue(
+                assertTrue(
                     it.first().packages.first().functions.size == 1
                 )
             }
@@ -134,7 +139,7 @@ class DeprecationFilterTest : BaseAbstractTest() {
             configuration
         ) {
             preMergeDocumentablesTransformationStage = {
-                Assertions.assertTrue(
+                assertTrue(
                     it.first().packages.first().functions.isEmpty()
                 )
             }
@@ -169,7 +174,7 @@ class DeprecationFilterTest : BaseAbstractTest() {
             configuration
         ) {
             preMergeDocumentablesTransformationStage = {
-                Assertions.assertTrue(
+                assertTrue(
                     it.first().packages.first().classlikes.first().classlikes.isEmpty()
                 )
             }
@@ -210,7 +215,7 @@ class DeprecationFilterTest : BaseAbstractTest() {
             configuration
         ) {
             preMergeDocumentablesTransformationStage = {
-                Assertions.assertTrue(
+                assertTrue(
                     it.first().packages.first().functions.isEmpty()
                 )
             }
@@ -250,7 +255,7 @@ class DeprecationFilterTest : BaseAbstractTest() {
             configuration
         ) {
             preMergeDocumentablesTransformationStage = {
-                Assertions.assertTrue(
+                assertTrue(
                     it.first().packages.first().functions.size == 1
                 )
             }

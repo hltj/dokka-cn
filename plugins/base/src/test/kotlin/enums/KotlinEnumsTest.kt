@@ -1,21 +1,26 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package enums
 
 import matchers.content.*
 import org.jetbrains.dokka.SourceLinkDefinitionImpl
-import org.jetbrains.dokka.pages.*
 import org.jetbrains.dokka.base.testApi.testRunner.BaseAbstractTest
-import org.jetbrains.dokka.model.*
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
+import org.jetbrains.dokka.model.DEnum
+import org.jetbrains.dokka.model.dfs
+import org.jetbrains.dokka.pages.ClasslikePage
+import org.jetbrains.dokka.pages.ClasslikePageNode
+import org.jetbrains.dokka.pages.ContentGroup
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Test
 import signatures.renderedContent
-import utils.TestOutputWriter
-import utils.TestOutputWriterPlugin
-import java.io.File
+import utils.*
 import java.net.URL
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class KotlinEnumsTest : BaseAbstractTest() {
 
@@ -286,6 +291,7 @@ class KotlinEnumsTest : BaseAbstractTest() {
             sourceSets {
                 sourceSet {
                     sourceRoots = listOf("src/")
+                    classpath = listOfNotNull(jvmStdlibPath)
                 }
             }
         }
@@ -322,6 +328,47 @@ class KotlinEnumsTest : BaseAbstractTest() {
     }
 
     @Test
+    @OnlyDescriptors("K2 has `compareTo`, that should be suppressed, due to #3196")
+    fun `enum should have functions on page`() {
+        val configuration = dokkaConfiguration {
+            sourceSets {
+                sourceSet {
+                    sourceRoots = listOf("src/")
+                }
+            }
+        }
+
+        testInline(
+            """
+            |/src/main/kotlin/basic/TestEnum.kt
+            |package testpackage
+            |
+            |
+            |interface Sample {
+            |    fun toBeImplemented(): String
+            |}
+            |
+            |enum class TestEnum: Sample {
+            |    E1 {
+            |        override fun toBeImplemented(): String = "e1"
+            |    }
+            |}
+        """.trimMargin(),
+            configuration
+        ) {
+            pagesTransformationStage = { root ->
+                root.contentPage<ClasslikePageNode>("E1") {
+                    assertHasFunctions("toBeImplemented")
+                }
+
+                root.contentPage<ClasslikePageNode>("TestEnum") {
+                    assertHasFunctions("toBeImplemented", "valueOf", "values")
+                }
+            }
+        }
+    }
+
+    @Test
     fun enumWithAnnotationsOnEntries() {
         val configuration = dokkaConfiguration {
             sourceSets {
@@ -347,7 +394,7 @@ class KotlinEnumsTest : BaseAbstractTest() {
             configuration
         ) {
             pagesTransformationStage = { m ->
-                val entryNode = m.children.first { it.name == "testpackage" }.children.first { it.name == "TestEnum" }.children.firstIsInstance<ClasslikePageNode>()
+                val entryNode = m.children.first { it.name == "testpackage" }.children.first { it.name == "TestEnum" }.children.filterIsInstance<ClasslikePageNode>().first()
                 val signature = (entryNode.content as ContentGroup).dfs { it is ContentGroup && it.dci.toString() == "[testpackage/TestEnum.E1///PointingToDeclaration/{\"org.jetbrains.dokka.links.EnumEntryDRIExtra\":{\"key\":\"org.jetbrains.dokka.links.EnumEntryDRIExtra\"}}][Cover]" } as ContentGroup
 
                 signature.assertNode {

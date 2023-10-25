@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package org.jetbrains.dokka.javadoc
 
 import org.jetbrains.dokka.DokkaConfiguration.DokkaSourceSet
@@ -7,10 +11,7 @@ import org.jetbrains.dokka.base.transformers.pages.comments.DocTagToContentConve
 import org.jetbrains.dokka.base.translators.documentables.firstSentenceBriefFromContentNodes
 import org.jetbrains.dokka.javadoc.pages.*
 import org.jetbrains.dokka.model.*
-import org.jetbrains.dokka.model.doc.Description
-import org.jetbrains.dokka.model.doc.Index
-import org.jetbrains.dokka.model.doc.Param
-import org.jetbrains.dokka.model.doc.TagWrapper
+import org.jetbrains.dokka.model.doc.*
 import org.jetbrains.dokka.model.properties.PropertyContainer
 import org.jetbrains.dokka.model.properties.WithExtraProperties
 import org.jetbrains.dokka.pages.*
@@ -19,25 +20,27 @@ import org.jetbrains.dokka.plugability.plugin
 import org.jetbrains.dokka.plugability.querySingle
 import kotlin.reflect.KClass
 
-open class JavadocPageCreator(context: DokkaContext) {
+public open class JavadocPageCreator(context: DokkaContext) {
     private val signatureProvider: SignatureProvider = context.plugin<DokkaBase>().querySingle { signatureProvider }
     private val documentationVersion = context.configuration.moduleVersion
 
-    fun pageForModule(m: DModule): JavadocModulePageNode =
-        JavadocModulePageNode(
+    public fun pageForModule(m: DModule): JavadocModulePageNode {
+        return JavadocModulePageNode(
             name = m.name.ifEmpty { "root" },
             content = contentForModule(m),
             children = m.packages.map { pageForPackage(it) },
             dri = setOf(m.dri),
             extra = ((m as? WithExtraProperties<DModule>)?.extra ?: PropertyContainer.empty())
         )
+    }
 
-    fun pageForPackage(p: DPackage) =
-        JavadocPackagePageNode(p.name, contentForPackage(p), setOf(p.dri), listOf(p),
+    public fun pageForPackage(p: DPackage): JavadocPackagePageNode {
+        return JavadocPackagePageNode(p.name, contentForPackage(p), setOf(p.dri), listOf(p),
             p.classlikes.mapNotNull { pageForClasslike(it) }
         )
+    }
 
-    fun pageForClasslike(c: DClasslike): JavadocClasslikePageNode? {
+    public fun pageForClasslike(c: DClasslike): JavadocClasslikePageNode? {
         return c.highestJvmSourceSet?.let { jvm ->
             @Suppress("UNCHECKED_CAST")
             val extra = ((c as? WithExtraProperties<Documentable>)?.extra ?: PropertyContainer.empty())
@@ -68,9 +71,11 @@ open class JavadocPageCreator(context: DokkaContext) {
                         it.name,
                         signatureForNode(it, jvm),
                         it.descriptionToContentNodes(jvm),
-                        PropertyContainer.withAll(it.indexesInDocumentation())
+                        PropertyContainer.withAll(it.indexesInDocumentation()),
                     )
                 },
+                sinceTagContent = c.sinceToContentNodes(jvm),
+                authorTagContent = c.authorsToContentNodes(jvm),
                 documentables = listOf(c),
                 children = children,
                 extra = extra + c.indexesInDocumentation()
@@ -165,6 +170,8 @@ open class JavadocPageCreator(context: DokkaContext) {
                     )
                 }
             },
+            returnTagContent = returnToContentNodes(jvm),
+            sinceTagContent = sinceToContentNodes(jvm),
             extra = extra + indexesInDocumentation()
         )
     }
@@ -176,6 +183,9 @@ open class JavadocPageCreator(context: DokkaContext) {
 
     private inline fun <reified T : TagWrapper> Documentable.findNodeInDocumentation(sourceSetData: DokkaSourceSet?): T? =
         documentation[sourceSetData]?.firstChildOfTypeOrNull<T>()
+
+    private inline fun <reified T : TagWrapper> Documentable.findAllNodesInDocumentation(sourceSetData: DokkaSourceSet?): List<T> =
+        documentation[sourceSetData]?.childrenOfType<T>() ?: emptyList()
 
     private fun Documentable.descriptionToContentNodes(sourceSet: DokkaSourceSet? = highestJvmSourceSet) =
         contentNodesFromType<Description>(sourceSet)
@@ -192,9 +202,19 @@ open class JavadocPageCreator(context: DokkaContext) {
             )
         }.orEmpty()
 
-    fun List<ContentNode>.nodeForJvm(jvm: DokkaSourceSet): ContentNode =
-        firstOrNull { jvm.sourceSetID in it.sourceSets.sourceSetIDs }
+    private inline fun <reified T : TagWrapper> Documentable.allContentNodesFromType(sourceSet: DokkaSourceSet?) =
+        findAllNodesInDocumentation<T>(sourceSet).map {
+            DocTagToContentConverter().buildContent(
+                it.root,
+                DCI(setOf(dri), JavadocContentKind.OverviewSummary),
+                sourceSets.toSet()
+            )
+        }
+
+    public fun List<ContentNode>.nodeForJvm(jvm: DokkaSourceSet): ContentNode {
+        return firstOrNull { jvm.sourceSetID in it.sourceSets.computeSourceSetIds() }
             ?: throw IllegalStateException("No source set found for ${jvm.sourceSetID} ")
+    }
 
     private fun Documentable.brief(sourceSet: DokkaSourceSet? = highestJvmSourceSet): List<ContentNode> =
         firstSentenceBriefFromContentNodes(descriptionToContentNodes(sourceSet))
@@ -228,5 +248,14 @@ open class JavadocPageCreator(context: DokkaContext) {
             }
         )
     }
+
+    private fun Documentable.authorsToContentNodes(sourceSet: DokkaSourceSet? = highestJvmSourceSet) =
+        allContentNodesFromType<Author>(sourceSet)
+
+    private fun Documentable.sinceToContentNodes(sourceSet: DokkaSourceSet? = highestJvmSourceSet) =
+        allContentNodesFromType<Since>(sourceSet)
+
+    private fun Documentable.returnToContentNodes(sourceSet: DokkaSourceSet? = highestJvmSourceSet) =
+        contentNodesFromType<Return>(sourceSet)
 }
 

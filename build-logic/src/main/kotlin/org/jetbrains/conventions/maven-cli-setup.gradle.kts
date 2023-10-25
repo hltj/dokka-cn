@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package org.jetbrains.conventions
 
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -18,7 +22,6 @@ plugins {
 abstract class MavenCliSetupExtension {
     abstract val mavenVersion: Property<String>
     abstract val mavenPluginToolsVersion: Property<String>
-    abstract val mavenBuildDir: DirectoryProperty
 
     /** Directory that will contain the unpacked Apache Maven dependency */
     abstract val mavenInstallDir: DirectoryProperty
@@ -39,7 +42,6 @@ val mavenCliSetupExtension =
         mavenVersion.convention(libs.versions.apacheMaven.core)
         mavenPluginToolsVersion.convention(libs.versions.apacheMaven.pluginTools)
 
-        mavenBuildDir.convention(layout.buildDirectory.dir("maven"))
         mavenInstallDir.convention(layout.buildDirectory.dir("apache-maven"))
 
         val isWindowsProvider =
@@ -77,7 +79,6 @@ val mavenBinary by configurations.registering {
 }
 
 tasks.clean {
-    delete(mavenCliSetupExtension.mavenBuildDir)
     delete(mavenCliSetupExtension.mavenInstallDir)
 }
 

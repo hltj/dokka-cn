@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package org.jetbrains.dokka.gradle.kotlin
 
 import com.android.build.gradle.api.ApplicationVariant
@@ -11,7 +15,6 @@ internal fun Project.isMainSourceSet(sourceSet: KotlinSourceSet): Boolean {
 }
 
 internal fun isMainSourceSet(compilations: List<KotlinCompilation>): Boolean {
-    if (compilations.isEmpty()) return true
     return compilations.any { compilation -> isMainCompilation(compilation) }
 }
 

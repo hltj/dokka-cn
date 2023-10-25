@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package org.jetbrains.dokka.base.renderers.html
 
 import org.jetbrains.dokka.base.DokkaBase
@@ -11,7 +15,9 @@ import org.jetbrains.dokka.plugability.DokkaContext
 import org.jetbrains.dokka.plugability.configuration
 import org.jetbrains.dokka.transformers.pages.PageTransformer
 
-open class NavigationPageInstaller(val context: DokkaContext) : NavigationDataProvider(), PageTransformer {
+public open class NavigationPageInstaller(
+    public val context: DokkaContext
+) : NavigationDataProvider(context), PageTransformer {
     override fun invoke(input: RootPageNode): RootPageNode =
         input.modified(
             children = input.children + NavigationPage(
@@ -22,7 +28,9 @@ open class NavigationPageInstaller(val context: DokkaContext) : NavigationDataPr
         )
 }
 
-class CustomResourceInstaller(val dokkaContext: DokkaContext) : PageTransformer {
+public class CustomResourceInstaller(
+    public val dokkaContext: DokkaContext
+) : PageTransformer {
     private val configuration = configuration<DokkaBase, DokkaBaseConfiguration>(dokkaContext)
 
     private val customAssets = configuration?.customAssets?.map {
@@ -44,7 +52,7 @@ class CustomResourceInstaller(val dokkaContext: DokkaContext) : PageTransformer 
     }
 }
 
-class ScriptsInstaller(private val dokkaContext: DokkaContext) : PageTransformer {
+public class ScriptsInstaller(private val dokkaContext: DokkaContext) : PageTransformer {
 
     // scripts ending with `_deferred.js` are loaded with `defer`, otherwise `async`
     private val scriptsPages = listOf(
@@ -72,13 +80,13 @@ class ScriptsInstaller(private val dokkaContext: DokkaContext) : PageTransformer
         }
 }
 
-class StylesInstaller(private val dokkaContext: DokkaContext) : PageTransformer {
+public class StylesInstaller(private val dokkaContext: DokkaContext) : PageTransformer {
     private val stylesPages = listOf(
         "styles/style.css",
-        "styles/jetbrains-mono.css",
         "styles/main.css",
         "styles/prism.css",
-        "styles/logo-styles.css"
+        "styles/logo-styles.css",
+        "styles/font-jb-sans-auto.css"
     )
 
     override fun invoke(input: RootPageNode): RootPageNode =
@@ -92,7 +100,7 @@ class StylesInstaller(private val dokkaContext: DokkaContext) : PageTransformer 
         }
 }
 
-object AssetsInstaller : PageTransformer {
+public object AssetsInstaller : PageTransformer {
     private val imagesPages = listOf(
         "images/arrow_down.svg",
         "images/logo-icon.svg",
@@ -102,6 +110,7 @@ object AssetsInstaller : PageTransformer {
         "images/copy-icon.svg",
         "images/copy-successful-icon.svg",
         "images/theme-toggle.svg",
+        "images/burger.svg",
 
         // navigation icons
         "images/nav-icons/abstract-class.svg",
@@ -119,9 +128,10 @@ object AssetsInstaller : PageTransformer {
         "images/nav-icons/interface.svg",
         "images/nav-icons/interface-kotlin.svg",
         "images/nav-icons/object.svg",
+        "images/nav-icons/typealias-kotlin.svg",
     )
 
-    override fun invoke(input: RootPageNode) = input.modified(
+    override fun invoke(input: RootPageNode): RootPageNode = input.modified(
         children = input.children + imagesPages.toRenderSpecificResourcePage()
     )
 }
@@ -129,7 +139,9 @@ object AssetsInstaller : PageTransformer {
 private fun List<String>.toRenderSpecificResourcePage(): List<RendererSpecificResourcePage> =
     map { RendererSpecificResourcePage(it, emptyList(), RenderingStrategy.Copy("/dokka/$it")) }
 
-class SourcesetDependencyAppender(val context: DokkaContext) : PageTransformer {
+public class SourcesetDependencyAppender(
+    public val context: DokkaContext
+) : PageTransformer {
     private val name = "scripts/sourceset_dependencies.js"
     override fun invoke(input: RootPageNode): RootPageNode {
         val dependenciesMap = context.configuration.sourceSets.associate {

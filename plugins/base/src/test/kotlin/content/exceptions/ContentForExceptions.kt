@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package content.exceptions
 
 import matchers.content.*
@@ -6,11 +10,8 @@ import org.jetbrains.dokka.PluginConfigurationImpl
 import org.jetbrains.dokka.base.DokkaBase
 import org.jetbrains.dokka.base.testApi.testRunner.BaseAbstractTest
 import org.jetbrains.dokka.model.DisplaySourceSet
-import org.jetbrains.kotlin.utils.addIfNotNull
-import org.junit.jupiter.api.Test
-import utils.ParamAttributes
-import utils.bareSignature
-import utils.findTestType
+import utils.*
+import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ContentForExceptions : BaseAbstractTest() {
@@ -18,6 +19,7 @@ class ContentForExceptions : BaseAbstractTest() {
         sourceSets {
             sourceSet {
                 sourceRoots = listOf("src/")
+                classpath = listOfNotNull(jvmStdlibPath)
                 analysisPlatform = "jvm"
             }
         }
@@ -31,6 +33,7 @@ class ContentForExceptions : BaseAbstractTest() {
                 displayName = "common"
                 analysisPlatform = "common"
                 sourceRoots = listOf("src/commonMain/kotlin/pageMerger/Test.kt")
+                classpath = listOfNotNull(commonStdlibPath)
             }
             sourceSet {
                 name = "jvm"
@@ -38,6 +41,7 @@ class ContentForExceptions : BaseAbstractTest() {
                 analysisPlatform = "jvm"
                 dependentSourceSets = setOf(common.value.sourceSetID)
                 sourceRoots = listOf("src/jvmMain/kotlin/pageMerger/Test.kt")
+                classpath = listOfNotNull(jvmStdlibPath)
             }
             sourceSet {
                 name = "linuxX64"
@@ -47,7 +51,7 @@ class ContentForExceptions : BaseAbstractTest() {
                 sourceRoots = listOf("src/linuxX64Main/kotlin/pageMerger/Test.kt")
             }
         }
-        pluginsConfigurations.addIfNotNull(
+        pluginsConfigurations.add(
             PluginConfigurationImpl(
                 DokkaBase::class.qualifiedName!!,
                 DokkaConfiguration.SerializationFormat.JSON,
@@ -56,6 +60,7 @@ class ContentForExceptions : BaseAbstractTest() {
         )
     }
 
+    @OnlyDescriptors("Fixed in 1.9.20 (IMPORT STAR)")
     @Test
     fun `function with navigatable thrown exception`() {
         testInline(

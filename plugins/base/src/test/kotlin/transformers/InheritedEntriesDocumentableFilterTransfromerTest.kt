@@ -1,8 +1,12 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package transformers
 
 import org.jetbrains.dokka.base.testApi.testRunner.BaseAbstractTest
 import org.jetbrains.dokka.model.DEnum
-import org.junit.jupiter.api.Test
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -140,7 +144,8 @@ class InheritedEntriesDocumentableFilterTransformerTest : BaseAbstractTest() {
             /src/suppressed/Suppressed.kt
             package suppressed
             enum class Suppressed {
-                ENTRY_SUPPRESSED
+                ENTRY_SUPPRESSED;
+                class A
             }
             """.trimIndent(),
             nonSuppressingInheritedConfiguration
@@ -154,3 +159,4 @@ class InheritedEntriesDocumentableFilterTransformerTest : BaseAbstractTest() {
         }
     }
 }
+

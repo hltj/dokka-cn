@@ -1,16 +1,21 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package org.jetbrains.dokka.javadoc.renderer
 
+import org.jetbrains.dokka.Platform
+import org.jetbrains.dokka.base.renderers.sourceSets
 import org.jetbrains.dokka.javadoc.location.JavadocLocationProvider
 import org.jetbrains.dokka.javadoc.pages.*
 import org.jetbrains.dokka.javadoc.toNormalized
-import org.jetbrains.dokka.Platform
-import org.jetbrains.dokka.base.renderers.sourceSets
 import org.jetbrains.dokka.links.DRI
 import org.jetbrains.dokka.links.parent
 import org.jetbrains.dokka.links.sureClassNames
 import org.jetbrains.dokka.model.ImplementedInterfaces
 import org.jetbrains.dokka.model.InheritedMember
-import org.jetbrains.dokka.pages.*
+import org.jetbrains.dokka.pages.ContentNode
+import org.jetbrains.dokka.pages.PageNode
 import org.jetbrains.dokka.plugability.DokkaContext
 import org.jetbrains.dokka.utilities.formatToEndWithHtml
 import java.io.File
@@ -122,6 +127,8 @@ internal class JavadocContentToTemplateMapTranslator(
             "description" to htmlForContentNodes(node.description,contextNode),
             "parameters" to node.parameters.map { templateMapForParameterNode(it) },
             "inlineParameters" to node.parameters.joinToString { renderInlineParameter(it) },
+            "returnTagContent" to htmlForContentNodes(node.returnTagContent, contextNode),
+            "sinceTagContent" to node.sinceTagContent.map { htmlForContentNodes(it, contextNode) },
             "anchorLink" to node.getAnchor(),
             "signature" to templateMapForSignatureNode(node.signature),
             "name" to node.name
@@ -137,6 +144,8 @@ internal class JavadocContentToTemplateMapTranslator(
                 "properties" to node.properties.map { templateMapForPropertyNode(it) },
                 "classlikes" to node.classlikes.map { templateMapForNestedClasslikeNode(it) },
                 "implementedInterfaces" to templateMapForImplementedInterfaces(node).sorted(),
+                "sinceTagContent" to node.sinceTagContent.map { htmlForContentNodes(it, contextNode) },
+                "authorTagContent" to node.authorTagContent.map { htmlForContentNodes(it, contextNode) },
                 "kind" to node.kind,
                 "packageName" to node.packageName,
                 "name" to node.name

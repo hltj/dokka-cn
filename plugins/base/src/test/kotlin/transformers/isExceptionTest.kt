@@ -1,10 +1,14 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package transformers
 
 import org.jetbrains.dokka.base.transformers.documentables.isException
 import org.jetbrains.dokka.model.DClass
 import org.jetbrains.dokka.model.DTypeAlias
-import org.junit.jupiter.api.Test
 import utils.AbstractModelTest
+import kotlin.test.Test
 
 class IsExceptionKotlinTest : AbstractModelTest("/src/main/kotlin/classes/Test.kt", "classes") {
     @Test
@@ -140,3 +144,4 @@ class IsExceptionJavaTest: AbstractModelTest("/src/main/kotlin/java/Test.java", 
         }
     }
 }
+
