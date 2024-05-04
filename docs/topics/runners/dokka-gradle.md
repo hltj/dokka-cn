@@ -90,14 +90,14 @@ and [multi-project](#multi-project-builds) builds.
 
 Use the following tasks to build documentation for simple, single-project applications and libraries:
 
-| **Task**       | **Description**                                                                     |
-|----------------|-------------------------------------------------------------------------------------|
-| `dokkaHtml`    | Generates documentation in [HTML](dokka-html.md) format.                                  |
+| **Task**    | **Description**                                          |
+|-------------|----------------------------------------------------------|
+| `dokkaHtml` | Generates documentation in [HTML](dokka-html.md) format. |
 
 #### Experimental formats
 
-| **Task**       | **Description**                                                                     |
-|----------------|-------------------------------------------------------------------------------------|
+| **Task**       | **Description**                                                                           |
+|----------------|-------------------------------------------------------------------------------------------|
 | `dokkaGfm`     | Generates documentation in [GitHub Flavored Markdown](dokka-markdown.md#gfm) format.      |
 | `dokkaJavadoc` | Generates documentation in [Javadoc](dokka-javadoc.md) format.                            |
 | `dokkaJekyll`  | Generates documentation in [Jekyll compatible Markdown](dokka-markdown.md#jekyll) format. |
@@ -119,14 +119,14 @@ cross-project references.
 
 Dokka creates the following tasks for **parent** projects automatically:
 
-| **Task**                 | **Description**                                                        |
-|--------------------------|------------------------------------------------------------------------|
-| `dokkaHtmlMultiModule`   | Generates multi-module documentation in [HTML](dokka-html.md) output format. |
+| **Task**               | **Description**                                                              |
+|------------------------|------------------------------------------------------------------------------|
+| `dokkaHtmlMultiModule` | Generates multi-module documentation in [HTML](dokka-html.md) output format. |
 
 #### Experimental formats (multi-module)
 
-| **Task**                 | **Description**                                                                                         |
-|--------------------------|---------------------------------------------------------------------------------------------------------|
+| **Task**                 | **Description**                                                                                               |
+|--------------------------|---------------------------------------------------------------------------------------------------------------|
 | `dokkaGfmMultiModule`    | Generates multi-module documentation in [GitHub Flavored Markdown](dokka-markdown.md#gfm) output format.      |
 | `dokkaJekyllMultiModule` | Generates multi-module documentation in [Jekyll compatible Markdown](dokka-markdown.md#jekyll) output format. |
 
@@ -155,7 +155,7 @@ These pages are generated after running `dokkaHtmlMultiModule`:
 
 ![Screenshot for output of dokkaHtmlMultiModule task](dokkaHtmlMultiModule-example.png){width=600}
 
-See our [multi-module project example](https://github.com/Kotlin/dokka/tree/master/examples/gradle/dokka-multimodule-example)
+See our [multi-module project example](https://github.com/Kotlin/dokka/tree/%dokkaVersion%/examples/gradle/dokka-multimodule-example)
 for more details.
 
 #### Collector tasks
@@ -192,7 +192,7 @@ These pages are generated after running `dokkaHtmlCollector`:
 
 ![Screenshot for output of dokkaHtmlCollector task](dokkaHtmlCollector-example.png){width=706}
 
-See our [multi-module project example](https://github.com/Kotlin/dokka/tree/master/examples/gradle/dokka-multimodule-example)
+See our [multi-module project example](https://github.com/Kotlin/dokka/tree/%dokkaVersion%/examples/gradle/dokka-multimodule-example)
 for more details.
 
 #### Partial tasks
@@ -367,11 +367,11 @@ plugins {
 }
 
 tasks.dokkaHtml {
-    outputDirectory.set(buildDir.resolve("documentation/html"))
+    outputDirectory.set(layout.buildDirectory.dir("documentation/html"))
 }
 
 tasks.dokkaGfm {
-    outputDirectory.set(buildDir.resolve("documentation/markdown"))
+    outputDirectory.set(layout.buildDirectory.dir("documentation/markdown"))
 }
 ```
 
@@ -543,7 +543,7 @@ subprojects {
 
     // configure only the HTML task
     tasks.dokkaHtmlPartial {
-        outputDirectory.set(buildDir.resolve("docs/partial"))
+        outputDirectory.set(layout.buildDirectory.dir("docs/partial"))
     }
 
     // configure all format tasks at once
@@ -602,7 +602,7 @@ apply(plugin = "org.jetbrains.dokka")
 
 // configuration for subproject-A only.
 tasks.dokkaHtmlPartial {
-    outputDirectory.set(buildDir.resolve("docs/partial"))
+    outputDirectory.set(layout.buildDirectory.dir("docs/partial"))
 }
 ```
 
@@ -690,7 +690,7 @@ import org.jetbrains.dokka.gradle.DokkaTask
 tasks.withType<DokkaTask>().configureEach {
     moduleName.set(project.name)
     moduleVersion.set(project.version.toString())
-    outputDirectory.set(buildDir.resolve("dokka/$name"))
+    outputDirectory.set(layout.buildDirectory.dir("dokka/$name"))
     failOnWarning.set(false)
     suppressObviousFunctions.set(true)
     suppressInheritedMembers.set(false)
@@ -1400,7 +1400,7 @@ import java.net.URL
 tasks.withType<DokkaTask>().configureEach {
     moduleName.set(project.name)
     moduleVersion.set(project.version.toString())
-    outputDirectory.set(buildDir.resolve("dokka/$name"))
+    outputDirectory.set(layout.buildDirectory.dir("dokka/$name"))
     failOnWarning.set(false)
     suppressObviousFunctions.set(true)
     suppressInheritedMembers.set(false)

@@ -1,23 +1,24 @@
 [versions]
 
-gradlePlugin-kotlin = "1.9.10"
+gradlePlugin-kotlin = "2.0.0-RC1"
 # See: https://kotlinlang.org/docs/gradle-configure-project.html#apply-the-plugin
-gradlePlugin-android = "4.2.2"
-gradlePlugin-dokka = "1.9.10"
+gradlePlugin-android = "7.1.3"
+gradlePlugin-dokka = "1.9.20"
 
 kotlinx-coroutines = "1.7.3"
 kotlinx-collections-immutable = "0.3.6"
+kotlinx-serialization = "1.6.0"
 kotlinx-bcv = "0.13.2"
 
 ## Analysis
-kotlin-compiler = "1.9.10"
-kotlin-compiler-k2 = "2.0.0-dev-5387"
+kotlin-compiler = "2.0.0-RC1"
+kotlin-compiler-k2 = "2.0.20-dev-7"
 
 # MUST match the version of the intellij platform used in the kotlin compiler,
 # otherwise this will lead to different versions of psi API and implementations
 # on the classpath and will fail with hard to debug problems in runtime.
 # See: https://github.com/JetBrains/kotlin/blob/e6633d3d9214402fcf3585ae8c24213a4761cc8b/gradle/versions.properties#L1
-intellij-platform = "213.7172.25"
+intellij-platform = "213.7172.53"
 
 ## HTML
 jsoup = "1.16.1"
@@ -26,7 +27,12 @@ korlibs-template = "4.0.10"
 kotlinx-html = "0.9.1"
 
 ## Markdown
-jetbrains-markdown = "0.3.1"
+jetbrains-markdown = "0.5.2"
+# This version SHOULD be compatible with both used in `koltin-compiler` and in `jetbrains-markdown`
+# version used in `kotlin-compiler` is located in https://github.com/JetBrains/kotlin/blob/c9ad09f4dcaae7792cdf27fbdc8c718443d0ad51/gradle/versions.properties#L14
+# verison used in `jetbrains-markdown` is located in https://github.com/JetBrains/markdown/blob/0f10d90f8f75a6c261e6f5a4f23d29c6cf088a92/build.gradle.kts#L92
+# In most cases using the latest version should work (be careful during MAJOR or MINOR version changes)
+fastutil = "8.5.12"
 
 ## JSON
 jackson = "2.12.7" # jackson 2.13.X does not support kotlin language version 1.4, check before updating
@@ -45,19 +51,26 @@ kotlinx-cli = "0.3.6"
 node = "16.13.0"
 
 ## Publishing
-gradlePlugin-shadow = "7.1.2"
-gradlePlugin-nexusPublish = "1.1.0"
-gradlePlugin-gradlePluginPublish = "0.20.0"
-gradlePlugin-gradleNode = "3.5.1"
+gradlePlugin-shadow = "8.1.1"
+gradlePlugin-gradlePluginPublish = "1.2.1"
+gradlePlugin-gradleNode = "7.0.1"
+
+## Gradle enterprise
+gradlePlugin-gradle-customUserData = "1.13"
+gradlePlugin-gradle-enterprise = "3.16.2"
 
 ## Test
 junit = "5.9.3"
+kotest = "5.6.2"
 eclipse-jgit = "5.13.2.202306221912-r" # jgit 6.X requires Java 11 to run
 
 [libraries]
 
+#### Kotlin Libs ####
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm", version.ref = "kotlinx-collections-immutable" }
+kotlinx-serialization-bom = { module = "org.jetbrains.kotlinx:kotlinx-serialization-bom", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json" }
 
 #### Gradle plugins ####
 # The Maven coordinates of Gradle plugins that are either used in convention plugins, or in Dokka subprojects
@@ -65,8 +78,10 @@ gradlePlugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", ve
 gradlePlugin-kotlin-klibCommonizerApi = { module = "org.jetbrains.kotlin:kotlin-klib-commonizer-api", version.ref = "gradlePlugin-kotlin" }
 gradlePlugin-android = { module = "com.android.tools.build:gradle", version.ref = "gradlePlugin-android" }
 gradlePlugin-dokka = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "gradlePlugin-dokka" }
-gradlePlugin-shadow = { module = "gradle.plugin.com.github.johnrengelman:shadow", version.ref = "gradlePlugin-shadow" }
-gradlePlugin-gradlePublish= { module = "com.gradle.publish:plugin-publish-plugin", version.ref = "gradlePlugin-gradlePluginPublish" }
+gradlePlugin-shadow = { module = "com.github.johnrengelman:shadow", version.ref = "gradlePlugin-shadow" }
+gradlePlugin-gradlePublish = { module = "com.gradle.publish:plugin-publish-plugin", version.ref = "gradlePlugin-gradlePluginPublish" }
+gradlePlugin-gradle-customUserData = { module = "com.gradle:common-custom-user-data-gradle-plugin", version.ref = "gradlePlugin-gradle-customUserData" }
+gradlePlugin-gradle-enterprise = { module = "com.gradle:gradle-enterprise-gradle-plugin", version.ref = "gradlePlugin-gradle-enterprise" }
 
 #### Kotlin analysis ####
 kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler", version.ref = "kotlin-compiler" }
@@ -82,7 +97,6 @@ kotlin-analysis-project-structure = { module = "org.jetbrains.kotlin:analysis-pr
 kotlin-analysis-api-standalone = { module = "org.jetbrains.kotlin:analysis-api-standalone-for-ide", version.ref = "kotlin-compiler-k2" }
 kotlin-analysis-api-providers = { module = "org.jetbrains.kotlin:analysis-api-providers-for-ide", version.ref = "kotlin-compiler-k2" }
 kotlin-symbol-light-classes = { module = "org.jetbrains.kotlin:symbol-light-classes-for-ide", version.ref = "kotlin-compiler-k2" }
-
 
 #### Java analysis ####
 intellij-java-psi-api = { module = "com.jetbrains.intellij.java:java-psi", version.ref = "intellij-platform" }
@@ -101,6 +115,7 @@ korlibs-template = { module = "com.soywiz.korlibs.korte:korte-jvm", version.ref 
 
 #### Markdown ####
 jetbrains-markdown = { module = "org.jetbrains:markdown", version.ref = "jetbrains-markdown" }
+fastutil = { module = "it.unimi.dsi:fastutil", version.ref = "fastutil" }
 
 #### Jackson ####
 jackson-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
@@ -120,9 +135,17 @@ kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli-jvm", version.ref = 
 #### Test dependencies  ####
 eclipse-jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "eclipse-jgit" }
 
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "gradlePlugin-kotlin" }
+
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiterApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-jupiterParams = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
+
+kotest-bom = { module = "io.kotest:kotest-bom", version.ref = "kotest" }
+kotest-datatest = { module = "io.kotest:kotest-framework-datatest" }
+kotest-junit5Runner = { module = "io.kotest:kotest-runner-junit5" }
+kotest-assertionsCore = { module = "io.kotest:kotest-assertions-core" }
+kotest-assertionsJson = { module = "io.kotest:kotest-assertions-json" }
 
 [plugins]
 # Gradle Plugins that are applied directly to subprojects
@@ -130,5 +153,5 @@ junit-jupiterParams = { module = "org.junit.jupiter:junit-jupiter-params", versi
 # and define the Maven coordinates above to be used in build-logic/build.gradle.kts)
 
 kotlinx-binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "kotlinx-bcv" }
-nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "gradlePlugin-nexusPublish" }
 gradleNode = { id = "com.github.node-gradle.node", version.ref = "gradlePlugin-gradleNode" }
+shadow = { id = "com.github.johnrengelman.shadow", version.ref = "gradlePlugin-shadow" }

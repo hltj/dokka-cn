@@ -23,9 +23,9 @@ Bug reports, feature requests and questions are welcome. Submit issues [here](ht
 
 ## Submitting PRs
 
-Dokka has extensive [Developer Guides](https://kotlin.github.io/dokka/1.9.10/developer_guide/introduction/) documentation
-which goes over the development [Workflow](https://kotlin.github.io/dokka/1.9.10/developer_guide/workflow/) and 
-[Dokka's architecture](https://kotlin.github.io/dokka/1.9.10/developer_guide/architecture/architecture_overview/),
+Dokka has extensive [Developer Guides](https://kotlin.github.io/dokka/1.9.20/developer_guide/introduction/) documentation
+which goes over the development [Workflow](https://kotlin.github.io/dokka/1.9.20/developer_guide/workflow/) and 
+[Dokka's architecture](https://kotlin.github.io/dokka/1.9.20/developer_guide/architecture/architecture_overview/),
 which can help you understand how to achieve what you want and where to look.
 
 All development (both new features and bugfixes) takes place in the `master` branch, it contains sources for the next
@@ -48,33 +48,35 @@ Please [contact maintainers](#contacting-maintainers) in advance to coordinate a
 
 ### Build Dokka locally
 
-Building Dokka is pretty straightforward, with one small caveat: when you run `./gradlew build`, it will run integration
-tests as well, which might take some time and will consume a lot of RAM (~20-30 GB), so you would usually want to exclude 
-integration tests when building locally:
+Building Dokka is pretty straightforward:
 
 ```Bash
-./gradlew build -x integrationTest
+./gradlew build
 ```
 
-Unit tests which are run as part of `build` should not take much time, but you can also skip it with `-x test`.
+This will build all subprojects and trigger `build` in all composite builds. If you are working on a 
+[runner](dokka-runners), you can build it independently.
+
+Checks that are performed as part of `build` do not require any special configuration or environment, and should 
+not take much time (~2-5 minutes), so please make sure they pass before submitting a pull request.
 
 ### Use/test locally built Dokka
 
 Below you will find a bare-bones instruction on how to use and test locally built Dokka. For more details and examples, 
-visit [Workflow](https://kotlin.github.io/dokka/1.9.10/developer_guide/workflow/) topic.
+visit [Workflow](https://kotlin.github.io/dokka/1.9.20/developer_guide/workflow/) topic.
 
-1. Change `dokka_version` in `gradle.properties` to something that you will use later on as the dependency version.
-   For instance, you can set it to something like `1.9.10-my-fix-SNAPSHOT`.
-2. Publish it to Maven Local (`./gradlew publishToMavenLocal`)
-3. In the project for which you want to generate documentation add Maven Local as a buildscript/dependency
+1. Publish a custom version of Dokka to Maven Local: `./gradlew publishToMavenLocal -Pversion=1.9.20-my-fix-SNAPSHOT`
+2. In the project for which you want to generate documentation add Maven Local as a buildscript/dependency
    repository (`mavenLocal()`)
-4. Update your Dokka dependency to the version you've just published:
+3. Update your Dokka dependency to the version you've just published:
 
 ```kotlin
 plugins {
-    id("org.jetbrains.dokka") version "1.9.10-my-fix-SNAPSHOT"
+    id("org.jetbrains.dokka") version "1.9.20-my-fix-SNAPSHOT"
 }
 ```
+
+There is an automation script for this routine, see [testDokka.sh.md](scripts/testDokka.sh.md) for details.
 
 ### Updating public API dump
 
@@ -83,6 +85,25 @@ is used to keep track of public API changes.
 
 Run `./gradlew apiDump` to update API index files after introducing new or changing old public API. Commit updated 
 API indexes together with other changes.
+
+### Run integration tests
+
+Dokka's [integration tests](dokka-integration-tests) help check compatibility with various versions of Kotlin, Android, 
+Gradle and Java. They apply Dokka to real user-like projects and invoke Gradle / Maven / CLI tasks to generate the 
+documentation.
+
+Integration tests require a significant amount of available RAM (~20-30GB), take 1+ hour and may require additional 
+environment configuration to run. For these reasons, it's not expected that you run all integration tests locally 
+as part of the everyday development process, they will be run on CI once you submit a PR.
+
+However, if you need to run all integration tests locally, you can use the `integrationTest` task:
+
+```bash
+./gradlew integrationTest
+```
+
+If you need to run a specific test locally, you can run it from your IDE or by calling the corresponding Gradle
+task (for example, `:dokka-integration-tests:gradle:testExternalProjectKotlinxCoroutines`).
 
 ## Infrastructure
 
@@ -153,6 +174,22 @@ Notable builds:
 * [Dokka Integration Tests](https://teamcity.jetbrains.com/buildConfiguration/KotlinTools_Dokka_IntegrationTests)
   runs Dokka's integration tests, which are designed to test compatibility with different Kotlin versions, with different
   multiplatform targets and with various user scenarios.
+
+### Gradle Build Scans
+
+[Gradle Build Scans](https://scans.gradle.com/) can provide insights into a Dokka Build. 
+JetBrains runs a [Gradle Develocity server](https://ge.jetbrains.com/scans?search.rootProjectNames=dokka).
+that can be used to automatically upload reports.
+
+To automatically opt in add the following to `$GRADLE_USER_HOME/gradle.properties`. 
+
+```properties
+org.jetbrains.dokka.build.scan.enabled=true
+# optionally provide a username that will be attached to each report
+org.jetbrains.dokka.build.scan.username=Hannah Clarke
+```
+
+A Build Scan may contain identifiable information. See the Terms of Use https://gradle.com/legal/terms-of-use/.
 
 ## Contacting maintainers
 
